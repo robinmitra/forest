@@ -32,6 +32,12 @@ type directory struct {
 	name string
 }
 
+type analysis struct {
+	files       []file
+	directories []directory
+	diskUsage   int64
+}
+
 func humanise(bytes int64) string {
 	if bytes < GB {
 		if bytes < MB {
@@ -50,7 +56,6 @@ func (s summary) print() {
 	fmt.Println("\nSummary:")
 	fmt.Println("Files:", s.numFiles)
 	fmt.Println("Directories:", s.numDirectories)
-	fmt.Println("Disk usage:", s.diskUsage)
 	fmt.Println("Disk usage:", humanise(s.diskUsage))
 }
 
@@ -111,11 +116,8 @@ func isDotFile(path string) bool {
 	return false
 }
 
-func analyse(root string, includeDotFiles bool) summary {
-	var files []file
-	var directories []directory
-	var diskUsage int64
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+func analyseFile(analysis *analysis, includeDotFiles bool) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -134,27 +136,32 @@ func analyse(root string, includeDotFiles bool) summary {
 			}
 		}
 		if info.IsDir() {
-			directories = append(directories, directory{name: path})
+			analysis.directories = append(analysis.directories, directory{name: path})
 			fmt.Println("Including file: " + path)
 		} else {
-			diskUsage += info.Size()
-			files = append(files, file{name: path, size: info.Size()})
+			analysis.diskUsage += info.Size()
+			analysis.files = append(analysis.files, file{name: path, size: info.Size()})
 			fmt.Println("Including directory: " + path)
 		}
 		time.Sleep(50 * time.Millisecond)
 		return nil
-	})
+	}
+}
+
+func analyse(root string, includeDotFiles bool) summary {
+	analysis := analysis{}
+	err := filepath.Walk(root, analyseFile(&analysis, includeDotFiles))
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println("\nFiles and directories found:")
-	for _, file := range files {
+	for _, file := range analysis.files {
 		fmt.Println(file)
 	}
 	summary := summary{
-		numFiles:       len(files),
-		numDirectories: len(directories),
-		diskUsage:      diskUsage,
+		numFiles:       len(analysis.files),
+		numDirectories: len(analysis.directories),
+		diskUsage:      analysis.diskUsage,
 	}
 	return summary
 }
