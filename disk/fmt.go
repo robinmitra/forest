@@ -13,12 +13,11 @@ func Humanise(bytes int64) string {
 	if bytes < GB {
 		if bytes < MB {
 			if bytes < KB {
-				return fmt.Sprintf("%i B", bytes)
+				return fmt.Sprintf("%d B", bytes)
 			}
 			return fmt.Sprintf("%.2f KB", float64(bytes)/float64(KB))
 		}
 		return fmt.Sprintf("%.2f MB", float64(bytes)/float64(MB))
-	} else {
-		return fmt.Sprintf("%.2f GB", float64(bytes)/float64(GB))
 	}
+	return fmt.Sprintf("%.2f GB", float64(bytes)/float64(GB))
 }
