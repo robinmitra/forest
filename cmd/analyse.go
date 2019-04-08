@@ -57,6 +57,7 @@ var cmdAnalyse = &cobra.Command{
 
 func init() {
 	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+	log.SetLevel(log.WarnLevel) // Only log the warning severity or above.
 
 	var includeDotFiles bool
 
