@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/robinmitra/forest/disk"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -16,7 +17,6 @@ type summary struct {
 	numDirectories int
 	diskUsage      int64
 }
-
 type file struct {
 	name string
 	size int64
@@ -44,7 +44,7 @@ var cmdAnalyse = &cobra.Command{
 	Short: "Analyse directories and files",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Analysing directory:", strings.Join(args, " "))
+		log.Info("Analysing directory:", strings.Join(args, " "))
 		if err := validate(cmd, args); err != nil {
 			panic(err)
 		}
@@ -56,6 +56,8 @@ var cmdAnalyse = &cobra.Command{
 }
 
 func init() {
+	log.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+
 	var includeDotFiles bool
 
 	rootCmd.AddCommand(cmdAnalyse)
@@ -108,20 +110,20 @@ func analyseFile(analysis *analysis, includeDotFiles bool) filepath.WalkFunc {
 		if !includeDotFiles {
 			if isDotFile := isDotFile(filename); isDotFile {
 				if info.IsDir() {
-					fmt.Println("Skipping entire directory: " + path)
+					log.Info("Skipping entire directory: " + path)
 					return filepath.SkipDir
 				}
-				fmt.Println("Skipping file: " + path)
+				log.Info("Skipping file: " + path)
 				return nil
 			}
 		}
 		if info.IsDir() {
 			analysis.directories = append(analysis.directories, directory{name: path})
-			fmt.Println("Including file: " + path)
+			log.Info("Including file: " + path)
 		} else {
 			analysis.diskUsage += info.Size()
 			analysis.files = append(analysis.files, file{name: path, size: info.Size()})
-			fmt.Println("Including directory: " + path)
+			log.Info("Including directory: " + path)
 		}
 		time.Sleep(50 * time.Millisecond)
 		return nil
@@ -133,10 +135,6 @@ func analyse(root string, includeDotFiles bool) summary {
 	err := filepath.Walk(root, analyseFile(&analysis, includeDotFiles))
 	if err != nil {
 		panic(err)
-	}
-	fmt.Println("\nFiles and directories found:")
-	for _, file := range analysis.files {
-		fmt.Println(file)
 	}
 	summary := summary{
 		numFiles:       len(analysis.files),
