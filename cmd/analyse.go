@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/gosuri/uilive"
 	"github.com/robinmitra/forest/disk"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,6 +18,7 @@ type summary struct {
 	numDirectories int
 	diskUsage      int64
 }
+
 type file struct {
 	name string
 	size int64
@@ -99,7 +101,7 @@ func isDotFile(path string) bool {
 	return false
 }
 
-func analyseFile(analysis *analysis, includeDotFiles bool) filepath.WalkFunc {
+func analyseFile(analysis *analysis, includeDotFiles bool, w *uilive.Writer) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -118,6 +120,9 @@ func analyseFile(analysis *analysis, includeDotFiles bool) filepath.WalkFunc {
 				return nil
 			}
 		}
+		if _, err = fmt.Fprintln(w, "Analysing..", path); err != nil {
+			panic(err)
+		}
 		if info.IsDir() {
 			analysis.directories = append(analysis.directories, directory{name: path})
 			log.Info("Including file: " + path)
@@ -133,10 +138,15 @@ func analyseFile(analysis *analysis, includeDotFiles bool) filepath.WalkFunc {
 
 func analyse(root string, includeDotFiles bool) summary {
 	analysis := analysis{}
-	err := filepath.Walk(root, analyseFile(&analysis, includeDotFiles))
-	if err != nil {
+	writer := uilive.New()
+	writer.Start() // Start listening for updates and render.
+	if err := filepath.Walk(root, analyseFile(&analysis, includeDotFiles, writer)); err != nil {
 		panic(err)
 	}
+	if _, err := fmt.Fprintln(writer, "Done."); err != nil {
+		panic(err)
+	}
+	writer.Stop()
 	summary := summary{
 		numFiles:       len(analysis.files),
 		numDirectories: len(analysis.directories),
