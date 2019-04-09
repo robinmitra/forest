@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"github.com/spf13/cobra"
 	"os"
@@ -49,7 +50,8 @@ func TestAnalysisOfPath(t *testing.T) {
 		t.Parallel()
 		analysis := analysis{}
 		var info os.FileInfo
-		walkFunc := analyseFile(&analysis, true)
+		var writer bytes.Buffer
+		walkFunc := analyseFile(&analysis, true, &writer)
 		err := walkFunc("some-path", info, errors.New("something went wrong"))
 		if err == nil {
 			t.Errorf("Expected error to be returned when there is a problem walking a path.")
@@ -59,7 +61,8 @@ func TestAnalysisOfPath(t *testing.T) {
 		t.Parallel()
 		analysis := analysis{}
 		var info os.FileInfo
-		walkFunc := analyseFile(&analysis, true)
+		var writer bytes.Buffer
+		walkFunc := analyseFile(&analysis, true, &writer)
 		err := walkFunc(".", info, nil)
 		if err != nil || len(analysis.directories) > 0 || len(analysis.files) > 0 {
 			t.Errorf("Expected directory to be skipped.")
@@ -68,11 +71,12 @@ func TestAnalysisOfPath(t *testing.T) {
 	t.Run("Path is a dot file or directory and should be skipped", func(t *testing.T) {
 		t.Parallel()
 		analysis := analysis{}
+		var writer bytes.Buffer
 
 		// Dot directory.
 		dirname := ".some-directory"
 		dirInfo := fileInfoMock{dir: true, basename: dirname}
-		dirWalkFunc := analyseFile(&analysis, false)
+		dirWalkFunc := analyseFile(&analysis, false, &writer)
 		if err := dirWalkFunc(dirname, dirInfo, nil); err != filepath.SkipDir {
 			t.Errorf("Expected dot directory to be skipped.")
 		}
@@ -80,7 +84,7 @@ func TestAnalysisOfPath(t *testing.T) {
 		// Dot file.
 		filename := ".some-file"
 		fileInfo := fileInfoMock{dir: false, basename: filename}
-		fileWalkFunc := analyseFile(&analysis, false)
+		fileWalkFunc := analyseFile(&analysis, false, &writer)
 		if err := fileWalkFunc(dirname, fileInfo, nil); err != nil {
 			t.Errorf("Expected dot file to be skipped.")
 		}
@@ -92,11 +96,12 @@ func TestAnalysisOfPath(t *testing.T) {
 	t.Run("Path is a dot file or directory and should be included", func(t *testing.T) {
 		t.Parallel()
 		analysis := analysis{}
+		var writer bytes.Buffer
 
 		// Dot directory.
 		dirname := ".some-directory"
 		dirInfo := fileInfoMock{dir: true, basename: dirname}
-		dirWalkFunc := analyseFile(&analysis, true)
+		dirWalkFunc := analyseFile(&analysis, true, &writer)
 		if err := dirWalkFunc(dirname, dirInfo, nil); err == filepath.SkipDir {
 			t.Errorf("Expected dot directory to be included.")
 		}
@@ -104,7 +109,7 @@ func TestAnalysisOfPath(t *testing.T) {
 		// Dot file.
 		filename := ".some-file"
 		fileInfo := fileInfoMock{dir: false, basename: filename}
-		fileWalkFunc := analyseFile(&analysis, true)
+		fileWalkFunc := analyseFile(&analysis, true, &writer)
 		if err := fileWalkFunc(dirname, fileInfo, nil); err != nil {
 			t.Errorf("Expected dot file to be included.")
 		}

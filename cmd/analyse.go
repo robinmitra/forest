@@ -7,6 +7,7 @@ import (
 	"github.com/robinmitra/forest/disk"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -101,7 +102,7 @@ func isDotFile(path string) bool {
 	return false
 }
 
-func analyseFile(analysis *analysis, includeDotFiles bool, w *uilive.Writer) filepath.WalkFunc {
+func analyseFile(analysis *analysis, includeDotFiles bool, w io.Writer) filepath.WalkFunc {
 	return func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
