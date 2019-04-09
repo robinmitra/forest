@@ -120,8 +120,10 @@ func analyseFile(analysis *analysis, includeDotFiles bool, w *uilive.Writer) fil
 				return nil
 			}
 		}
-		if _, err = fmt.Fprintln(w, "Analysing..", path); err != nil {
-			panic(err)
+		if len(analysis.files)%5000 == 0 {
+			if _, err = fmt.Fprintln(w, "Analysing..", path); err != nil {
+				panic(err)
+			}
 		}
 		if info.IsDir() {
 			analysis.directories = append(analysis.directories, directory{name: path})
@@ -131,7 +133,6 @@ func analyseFile(analysis *analysis, includeDotFiles bool, w *uilive.Writer) fil
 			analysis.files = append(analysis.files, file{name: path, size: info.Size()})
 			log.Info("Including directory: " + path)
 		}
-		time.Sleep(50 * time.Millisecond)
 		return nil
 	}
 }
@@ -139,6 +140,7 @@ func analyseFile(analysis *analysis, includeDotFiles bool, w *uilive.Writer) fil
 func analyse(root string, includeDotFiles bool) summary {
 	analysis := analysis{}
 	writer := uilive.New()
+	writer.RefreshInterval = time.Nanosecond
 	writer.Start() // Start listening for updates and render.
 	if err := filepath.Walk(root, analyseFile(&analysis, includeDotFiles, writer)); err != nil {
 		panic(err)
