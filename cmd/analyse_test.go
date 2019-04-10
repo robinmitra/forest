@@ -48,7 +48,7 @@ func TestValidArgs(t *testing.T) {
 func TestAnalysisOfPath(t *testing.T) {
 	t.Run("Problem walking path", func(t *testing.T) {
 		t.Parallel()
-		analysis := analysis{}
+		analysis := newAnalysis()
 		var info os.FileInfo
 		var writer bytes.Buffer
 		walkFunc := analyseFile(&analysis, true, &writer)
@@ -59,7 +59,7 @@ func TestAnalysisOfPath(t *testing.T) {
 	})
 	t.Run("Path is current directory", func(t *testing.T) {
 		t.Parallel()
-		analysis := analysis{}
+		analysis := newAnalysis()
 		var info os.FileInfo
 		var writer bytes.Buffer
 		walkFunc := analyseFile(&analysis, true, &writer)
@@ -70,7 +70,7 @@ func TestAnalysisOfPath(t *testing.T) {
 	})
 	t.Run("Path is a dot file or directory and should be skipped", func(t *testing.T) {
 		t.Parallel()
-		analysis := analysis{}
+		analysis := newAnalysis()
 		var writer bytes.Buffer
 
 		// Dot directory.
@@ -95,7 +95,7 @@ func TestAnalysisOfPath(t *testing.T) {
 	})
 	t.Run("Path is a dot file or directory and should be included", func(t *testing.T) {
 		t.Parallel()
-		analysis := analysis{}
+		analysis := newAnalysis()
 		var writer bytes.Buffer
 
 		// Dot directory.
@@ -120,7 +120,7 @@ func TestAnalysisOfPath(t *testing.T) {
 	})
 	t.Run("Path is a regular file or directory and should be included", func(t *testing.T) {
 		t.Parallel()
-		analysis := analysis{}
+		analysis := newAnalysis()
 		var writer bytes.Buffer
 
 		// Directory.

@@ -3,18 +3,21 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"github.com/cheynewallace/tabby"
 	"github.com/gosuri/uilive"
-	"github.com/robinmitra/forest/disk"
+	"github.com/robinmitra/forest/formatter"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
 
 type summary struct {
+	analysis       analysis
 	numFiles       int
 	numDirectories int
 	diskUsage      int64
@@ -29,17 +32,79 @@ type directory struct {
 	name string
 }
 
+type extension struct {
+	name      string
+	numFiles  int
+	diskUsage int64
+}
+
 type analysis struct {
 	files       []file
 	directories []directory
 	diskUsage   int64
+	extensions  map[string]extension
+}
+
+func newAnalysis() analysis {
+	a := analysis{}
+	a.extensions = make(map[string]extension)
+	return a
+}
+
+func (a *analysis) registerExtension(extName string, size int64) {
+	if len(extName) == 0 {
+		extName = "(missing)"
+	}
+	var ext extension
+	if val, ok := a.extensions[extName]; ok {
+		ext = val
+	}
+	ext.name = extName
+	ext.numFiles++
+	ext.diskUsage = +size
+	a.extensions[extName] = ext
+}
+
+func (a *analysis) getSortedExtensions(by string) []extension {
+	var extensions []extension
+	for _, ext := range a.extensions {
+		extensions = append(extensions, ext)
+	}
+	if by == "occurrence" {
+		sort.Slice(extensions, func(i, j int) bool {
+			return extensions[i].numFiles > extensions[j].numFiles
+		})
+	} else {
+		sort.Slice(extensions, func(i, j int) bool {
+			return extensions[i].diskUsage > extensions[j].diskUsage
+		})
+	}
+	return extensions
 }
 
 func (s summary) print() {
 	fmt.Println("\nSummary:")
-	fmt.Println("Files:", s.numFiles)
-	fmt.Println("Directories:", s.numDirectories)
-	fmt.Println("Disk usage:", disk.Humanise(s.diskUsage))
+	fmt.Println("\nFiles:", formatter.HumaniseNumber(int64(s.numFiles)))
+	fmt.Println("Directories:", formatter.HumaniseNumber(int64(s.numDirectories)))
+	fmt.Println("Disk usage:", formatter.HumaniseStorage(s.diskUsage))
+	fmt.Println("")
+
+	t := tabby.New()
+
+	fmt.Println("Statistics:")
+	fmt.Println("\nTop 5 file types by occurrence:")
+	t.AddHeader("File type", "Occurrence")
+	for _, ext := range s.analysis.getSortedExtensions("occurrence")[:5] {
+		t.AddLine(ext.name, formatter.HumaniseNumber(int64(ext.numFiles)))
+	}
+	t.Print()
+
+	fmt.Println("\nTop 5 file types by total disk usage:")
+	t.AddHeader("File type", "Size")
+	for _, ext := range s.analysis.getSortedExtensions("size")[:5] {
+		t.AddLine(ext.name, formatter.HumaniseStorage(ext.diskUsage))
+	}
+	t.Print()
 }
 
 var cmdAnalyse = &cobra.Command{
@@ -127,11 +192,13 @@ func analyseFile(analysis *analysis, includeDotFiles bool, w io.Writer) filepath
 			}
 		}
 		if info.IsDir() {
-			analysis.directories = append(analysis.directories, directory{name: path})
+			analysis.directories = append(analysis.directories, directory{name: filename})
 			log.Info("Including file: " + path)
 		} else {
 			analysis.diskUsage += info.Size()
-			analysis.files = append(analysis.files, file{name: path, size: info.Size()})
+			// TODO may be create a method named registerFile which adds file and extension.
+			analysis.files = append(analysis.files, file{name: filename, size: info.Size()})
+			analysis.registerExtension(filepath.Ext(filename), info.Size())
 			log.Info("Including directory: " + path)
 		}
 		return nil
@@ -139,7 +206,7 @@ func analyseFile(analysis *analysis, includeDotFiles bool, w io.Writer) filepath
 }
 
 func analyse(root string, includeDotFiles bool) summary {
-	analysis := analysis{}
+	analysis := newAnalysis()
 	writer := uilive.New()
 	writer.RefreshInterval = time.Nanosecond
 	writer.Start() // Start listening for updates and render.
@@ -151,6 +218,8 @@ func analyse(root string, includeDotFiles bool) summary {
 	}
 	writer.Stop()
 	summary := summary{
+		// TODO: Optimise this
+		analysis:       analysis,
 		numFiles:       len(analysis.files),
 		numDirectories: len(analysis.directories),
 		diskUsage:      analysis.diskUsage,

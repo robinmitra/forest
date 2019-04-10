@@ -1,4 +1,4 @@
-package disk
+package formatter
 
 import (
 	"fmt"
@@ -21,9 +21,9 @@ func TestHumanise(t *testing.T) {
 	for _, tc := range testCases {
 		// Bind the current test case as otherwise `tc` will end up referring to the last one.
 		tc := tc
-		t.Run(fmt.Sprintf("Humanise %d bytes", tc.in), func(t *testing.T) {
+		t.Run(fmt.Sprintf("HumaniseStorage %d bytes", tc.in), func(t *testing.T) {
 			t.Parallel()
-			if res := Humanise(tc.in); res != tc.out {
+			if res := HumaniseStorage(tc.in); res != tc.out {
 				t.Fatalf(
 					"Expected humanisation of %d bytes to be %s, found %s",
 					tc.in,
