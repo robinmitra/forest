@@ -118,4 +118,29 @@ func TestAnalysisOfPath(t *testing.T) {
 			t.Errorf("Expected dot files or directories to be included.")
 		}
 	})
+	t.Run("Path is a regular file or directory and should be included", func(t *testing.T) {
+		t.Parallel()
+		analysis := analysis{}
+		var writer bytes.Buffer
+
+		// Directory.
+		dirname := "some-directory"
+		dirInfo := fileInfoMock{dir: true, basename: dirname}
+		dirWalkFunc := analyseFile(&analysis, false, &writer)
+		if err := dirWalkFunc(dirname, dirInfo, nil); err == filepath.SkipDir {
+			t.Errorf("Expected directory to be included.")
+		}
+
+		// File.
+		filename := "some-file"
+		fileInfo := fileInfoMock{dir: false, basename: filename}
+		fileWalkFunc := analyseFile(&analysis, false, &writer)
+		if err := fileWalkFunc(dirname, fileInfo, nil); err != nil {
+			t.Errorf("Expected file to be included.")
+		}
+
+		if len(analysis.directories) != 1 || len(analysis.files) != 1 {
+			t.Errorf("Expected files or directories to be included.")
+		}
+	})
 }
