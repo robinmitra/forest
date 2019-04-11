@@ -122,6 +122,9 @@ var cmdAnalyse = &cobra.Command{
 			panic(err)
 		}
 		root := args[0]
+		if verbose, _ := cmd.Root().PersistentFlags().GetBool("verbose"); verbose {
+			log.SetLevel(log.InfoLevel)
+		}
 		includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files")
 		summary := analyse(root, includeDotFiles)
 		summary.print()
