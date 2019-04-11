@@ -65,7 +65,7 @@ func (a *analysis) registerExtension(extName string, size int64) {
 	a.extensions[extName] = ext
 }
 
-func (a *analysis) getSortedExtensions(by string) []extension {
+func (a *analysis) getSortedExtensions(by string, count int) []extension {
 	var extensions []extension
 	for _, ext := range a.extensions {
 		extensions = append(extensions, ext)
@@ -78,6 +78,11 @@ func (a *analysis) getSortedExtensions(by string) []extension {
 		sort.Slice(extensions, func(i, j int) bool {
 			return extensions[i].diskUsage > extensions[j].diskUsage
 		})
+	}
+	if count > 0 {
+		if len(extensions) > count {
+			return extensions[0:count]
+		}
 	}
 	return extensions
 }
@@ -94,14 +99,14 @@ func (s summary) print() {
 	fmt.Println("Statistics:")
 	fmt.Println("\nTop 5 file types by occurrence:")
 	t.AddHeader("File type", "Occurrence")
-	for _, ext := range s.analysis.getSortedExtensions("occurrence")[:5] {
+	for _, ext := range s.analysis.getSortedExtensions("occurrence", 5) {
 		t.AddLine(ext.name, formatter.HumaniseNumber(int64(ext.numFiles)))
 	}
 	t.Print()
 
 	fmt.Println("\nTop 5 file types by total disk usage:")
 	t.AddHeader("File type", "Size")
-	for _, ext := range s.analysis.getSortedExtensions("size")[:5] {
+	for _, ext := range s.analysis.getSortedExtensions("size", 5) {
 		t.AddLine(ext.name, formatter.HumaniseStorage(ext.diskUsage))
 	}
 	t.Print()

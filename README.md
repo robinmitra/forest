@@ -25,6 +25,10 @@ forest analyse .
 * `--format`: The output format of the summary. Options include `normal` (default) and `rainbow`.
 
 ## TODO
+
+In no particular order:
+
 [] - Dockerise
 [] - Output formats (e.g. rainbow)
 [] - Installable via Homebrew
+[] - Verbose flag
