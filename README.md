@@ -9,7 +9,7 @@ The `analyse` command analyses files and directories at a given path, and summar
 metrics:
 * Total number of files and directories
 * Total disk space usage
-* Top 5 file types
+* Top 5 file types (by occurrence and disk usage)
 * Ability to ignore certain files and/or directories
 
 #### General usage
@@ -28,7 +28,7 @@ forest analyse .
 
 In no particular order:
 
-[] - Dockerise
-[] - Output formats (e.g. rainbow)
-[] - Installable via Homebrew
-[] - Verbose flag
+- [ ] Dockerise
+- [ ] Output formats (e.g. rainbow)
+- [x] Installable via Homebrew
+- [ ] Verbose flag
