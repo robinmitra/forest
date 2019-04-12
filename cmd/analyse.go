@@ -112,7 +112,7 @@ func (s summary) print() {
 	t.Print()
 }
 
-var cmdAnalyse = &cobra.Command{
+var analyseCmd = &cobra.Command{
 	Use:   "analyse [path]",
 	Short: "Analyse directories and files",
 	Args:  cobra.MinimumNArgs(1),
@@ -122,7 +122,7 @@ var cmdAnalyse = &cobra.Command{
 			panic(err)
 		}
 		root := args[0]
-		if verbose, _ := cmd.Root().PersistentFlags().GetBool("verbose"); verbose {
+		if verbose, _ := rootCmd.PersistentFlags().GetBool("verbose"); verbose {
 			log.SetLevel(log.InfoLevel)
 		}
 		includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files")
@@ -134,8 +134,8 @@ var cmdAnalyse = &cobra.Command{
 func init() {
 	var includeDotFiles bool
 
-	rootCmd.AddCommand(cmdAnalyse)
-	cmdAnalyse.Flags().BoolVarP(
+	rootCmd.AddCommand(analyseCmd)
+	analyseCmd.Flags().BoolVarP(
 		&includeDotFiles,
 		"include-dot-files",
 		"d",
