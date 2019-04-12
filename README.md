@@ -31,4 +31,4 @@ In no particular order:
 - [ ] Dockerise
 - [ ] Output formats (e.g. rainbow)
 - [x] Installable via Homebrew
-- [ ] Verbose and version flags
+- [x] Verbose and version flags
