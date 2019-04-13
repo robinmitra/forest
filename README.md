@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/robinmitra/forest.svg?branch=master)](https://travis-ci.com/robinmitra/forest)
+
 # forest
 For the forest on your computer
 
