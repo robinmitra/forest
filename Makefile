@@ -1,11 +1,41 @@
 SHELL := /bin/bash
+
 VERSION ?=
 TYPE ?= patch
 
 CURRENT_VERSION := $(shell cat VERSION)
 
+GOOS ?= $(word 1, $(subst /, " ", $(word 4, $(shell go version))))
+
+BUILD_DIR := build
+BIN_DIR := bin
+
+BINARY32 := forest_$(GOOS)_386
+BINARY64 := forest_$(GOOS)_amd64
+
+DOCKER_IMAGE := robinmitra/forest
+DOCKER_APP_PATH := /go/src/app
+DOCKER_VOL := $$(pwd):$(DOCKER_APP_PATH)
+
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M),x86_64)
+	BINARY := $(BINARY64)
+else ifeq ($(UNAME_M),amd64)
+	BINARY := $(BINARY64)
+else ifeq ($(UNAME_M),i686)
+	BINARY := $(BINARY32)
+else ifeq ($(UNAME_M),i386)
+	BINARY := $(BINARY32)
+else
+$(error "Build on $(UNAME_M) is not supported yet.")
+endif
+
 .PHONY: ask_version check_version_provided check_version_not_current check_type_provided
 .PHONY: check_prerequisites update_files commit tag bump push release
+
+###########
+# Version #
+###########
 
 ask_version:
 	$(eval VERSION=$(shell read -p "* What's the new version? " version; echo $$version))
@@ -56,3 +86,37 @@ push:
 	@echo "==> Finished"
 
 release: bump push
+
+#########
+# Build #
+#########
+
+# Build the docker image.
+docker-build:
+	docker build -t $(DOCKER_IMAGE) .
+
+# Build binary corresponding to the current architecture.
+build: $(BUILD_DIR)/$(BINARY)
+
+$(BUILD_DIR)/$(BINARY32):
+	docker run -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+
+$(BUILD_DIR)/$(BINARY64):
+	docker run -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+
+install: $(BIN_DIR)/forest
+
+$(BIN_DIR):
+	mkdir -p $@
+
+# Ensure that target doesn't get rebuilt if $(BIN_DIR) gets updated, while still having it as a
+# pre-requisite.
+$(BIN_DIR)/forest: $(BUILD_DIR)/$(BINARY) | $(BIN_DIR)
+	cp -f $< $@
+
+########
+# Test #
+########
+
+docker-test:
+	docker run --rm -v $$(pwd):/go/src/app robinmitra/forest go test -v ./...
