@@ -25,12 +25,3 @@ forest analyse .
 
 * `--include-dot-files`: Include hidden dot files in the analysis. These are excluded by default.
 * `--format`: The output format of the summary. Options include `normal` (default) and `rainbow`.
-
-## TODO
-
-In no particular order:
-
-- [ ] Dockerise
-- [ ] Output formats (e.g. rainbow)
-- [x] Installable via Homebrew
-- [x] Verbose and version flags
