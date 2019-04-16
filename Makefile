@@ -7,6 +7,8 @@ CURRENT_VERSION := $(shell cat VERSION)
 
 GOOS ?= $(word 1, $(subst /, " ", $(word 4, $(shell go version))))
 
+SOURCES := $(wildcard *.go **/*.go) $(MAKEFILE)
+
 BUILD_DIR := build
 BIN_DIR := bin
 
@@ -98,10 +100,10 @@ docker-build:
 # Build binary corresponding to the current architecture.
 build: $(BUILD_DIR)/$(BINARY)
 
-$(BUILD_DIR)/$(BINARY32):
+$(BUILD_DIR)/$(BINARY32): $(SOURCES)
 	docker run -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
 
-$(BUILD_DIR)/$(BINARY64):
+$(BUILD_DIR)/$(BINARY64): $(SOURCES)
 	docker run -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
 
 install: $(BIN_DIR)/forest
