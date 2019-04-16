@@ -87,6 +87,22 @@ func (a *analysis) getSortedExtensions(by string, count int) []extension {
 	return extensions
 }
 
+func (a *analysis) getSortedFiles(by string, count int) []file {
+	files := make([]file, len(a.files))
+	copy(files, a.files)
+	if by == "size" {
+		sort.Slice(files, func(i, j int) bool {
+			return files[i].size > files[j].size
+		})
+	}
+	if count > 0 {
+		if len(files) > count {
+			return files[0:count]
+		}
+	}
+	return files
+}
+
 func (s summary) print() {
 	fmt.Println("\nSummary:")
 	fmt.Println("\nFiles:", formatter.HumaniseNumber(int64(s.numFiles)))
@@ -108,6 +124,13 @@ func (s summary) print() {
 	t.AddHeader("File type", "Size")
 	for _, ext := range s.analysis.getSortedExtensions("size", 5) {
 		t.AddLine(ext.name, formatter.HumaniseStorage(ext.diskUsage))
+	}
+	t.Print()
+
+	fmt.Println("\nTop 5 files by size:")
+	t.AddHeader("File", "Size")
+	for _, file := range s.analysis.getSortedFiles("size", 5) {
+		t.AddLine(file.name, formatter.HumaniseStorage(file.size))
 	}
 	t.Print()
 }
