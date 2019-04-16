@@ -35,6 +35,40 @@ endif
 .PHONY: ask_version check_version_provided check_version_not_current check_type_provided
 .PHONY: check_prerequisites update_files commit tag bump push release
 
+#########
+# Build #
+#########
+
+# Build binary corresponding to the current architecture.
+build: $(BUILD_DIR)/$(BINARY)
+
+# Build the docker image.
+docker-build:
+	docker build -t $(DOCKER_IMAGE) .
+
+$(BUILD_DIR)/$(BINARY32): $(SOURCES)
+	docker run -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+
+$(BUILD_DIR)/$(BINARY64): $(SOURCES)
+	docker run -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+
+install: $(BIN_DIR)/forest
+
+$(BIN_DIR):
+	mkdir -p $@
+
+# Ensure that target doesn't get rebuilt if $(BIN_DIR) gets updated, while still having it as a
+# pre-requisite.
+$(BIN_DIR)/forest: $(BUILD_DIR)/$(BINARY) | $(BIN_DIR)
+	cp -f $< $@
+
+########
+# Test #
+########
+
+docker-test:
+	docker run --rm -v $$(pwd):/go/src/app robinmitra/forest go test -v ./...
+
 ###########
 # Version #
 ###########
@@ -88,37 +122,3 @@ push:
 	@echo "==> Finished"
 
 release: bump push
-
-#########
-# Build #
-#########
-
-# Build the docker image.
-docker-build:
-	docker build -t $(DOCKER_IMAGE) .
-
-# Build binary corresponding to the current architecture.
-build: $(BUILD_DIR)/$(BINARY)
-
-$(BUILD_DIR)/$(BINARY32): $(SOURCES)
-	docker run -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
-
-$(BUILD_DIR)/$(BINARY64): $(SOURCES)
-	docker run -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
-
-install: $(BIN_DIR)/forest
-
-$(BIN_DIR):
-	mkdir -p $@
-
-# Ensure that target doesn't get rebuilt if $(BIN_DIR) gets updated, while still having it as a
-# pre-requisite.
-$(BIN_DIR)/forest: $(BUILD_DIR)/$(BINARY) | $(BIN_DIR)
-	cp -f $< $@
-
-########
-# Test #
-########
-
-docker-test:
-	docker run --rm -v $$(pwd):/go/src/app robinmitra/forest go test -v ./...
