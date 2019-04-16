@@ -47,10 +47,11 @@ docker-build:
 	docker build -t $(DOCKER_IMAGE) .
 
 $(BUILD_DIR)/$(BINARY32): $(SOURCES)
-	docker run -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+	docker run --rm -v $(DOCKER_VOL) -e GOARCH=386 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
 
 $(BUILD_DIR)/$(BINARY64): $(SOURCES)
-	docker run -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) go build -v -o $@
+	docker run --rm -v $(DOCKER_VOL) -e GOARCH=amd64 -e GOOS=$(GOOS) $(DOCKER_IMAGE) \
+		go build -v -o $@
 
 install: $(BIN_DIR)/forest
 
