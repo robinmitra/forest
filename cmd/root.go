@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/robinmitra/forest/cmd/analyse"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -25,6 +26,8 @@ func init() {
 	var verbose bool
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
+
+	rootCmd.AddCommand(analyse.NewAnalyseCmd())
 }
 
 func initConfig() {

@@ -1,4 +1,4 @@
-package cmd
+package analyse
 
 import (
 	"bytes"

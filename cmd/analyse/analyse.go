@@ -1,4 +1,4 @@
-package cmd
+package analyse
 
 import (
 	"errors"
@@ -135,36 +135,37 @@ func (s summary) print() {
 	t.Print()
 }
 
-var analyseCmd = &cobra.Command{
-	Use:   "analyse [path]",
-	Short: "Analyse directories and files",
-	Args:  cobra.MinimumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Analysing directory:", strings.Join(args, " "))
-		if err := validate(cmd, args); err != nil {
-			panic(err)
-		}
-		root := args[0]
-		if verbose, _ := rootCmd.PersistentFlags().GetBool("verbose"); verbose {
-			log.SetLevel(log.InfoLevel)
-		}
-		includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files")
-		summary := analyse(root, includeDotFiles)
-		summary.print()
-	},
-}
-
-func init() {
+func NewAnalyseCmd() *cobra.Command {
 	var includeDotFiles bool
 
-	rootCmd.AddCommand(analyseCmd)
-	analyseCmd.Flags().BoolVarP(
+	cmd := &cobra.Command{
+		Use:   "analyse [path]",
+		Short: "Analyse directories and files",
+		Args:  cobra.MinimumNArgs(1),
+		Run: func(cmd *cobra.Command, args []string) {
+			log.Info("Analysing directory:", strings.Join(args, " "))
+			if err := validate(cmd, args); err != nil {
+				panic(err)
+			}
+			root := args[0]
+			if verbose, _ := cmd.Root().PersistentFlags().GetBool("verbose"); verbose {
+				log.SetLevel(log.InfoLevel)
+			}
+			includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files")
+			summary := analyse(root, includeDotFiles)
+			summary.print()
+		},
+	}
+
+	cmd.Flags().BoolVarP(
 		&includeDotFiles,
 		"include-dot-files",
 		"d",
 		false,
 		"include dot files (default is false)",
 	)
+
+	return cmd
 }
 
 func validate(cmd *cobra.Command, args []string) error {
