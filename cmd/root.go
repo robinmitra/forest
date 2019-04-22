@@ -35,15 +35,15 @@ var cmd = &cobra.Command{
 }
 
 func NewRootCmd() *cobra.Command {
-	var options = options{}
+	var o = options{}
 
 	cmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		options.initialise(cmd, args)
-		options.validate()
-		options.run()
+		o.initialise(cmd, args)
+		o.validate()
+		o.run()
 	}
 
-	cmd.PersistentFlags().BoolVarP(&options.verbose, "verbose", "v", false, "verbose output")
+	cmd.PersistentFlags().BoolVarP(&o.verbose, "verbose", "v", false, "verbose output")
 
 	cmd.AddCommand(analyse.NewAnalyseCmd())
 	cmd.AddCommand(version.NewVersionCmd(VERSION))
