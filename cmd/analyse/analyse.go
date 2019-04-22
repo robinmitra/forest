@@ -142,6 +142,8 @@ type options struct {
 func (o *options) initialise(cmd *cobra.Command, args []string) {
 	if len(args) != 0 {
 		o.root = args[0]
+	} else {
+		o.root = "."
 	}
 	if includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files"); includeDotFiles {
 		o.includeDotFiles = includeDotFiles
@@ -149,9 +151,7 @@ func (o *options) initialise(cmd *cobra.Command, args []string) {
 }
 
 func (o *options) validate() {
-	if len(o.root) == 0 {
-		log.Fatal("path not provided")
-	}
+	return
 }
 
 func (o *options) run() {
@@ -163,7 +163,6 @@ func (o *options) run() {
 var cmd = &cobra.Command{
 	Use:   "analyse [path]",
 	Short: "Analyse directories and files",
-	Args:  cobra.MinimumNArgs(1),
 }
 
 func NewAnalyseCmd() *cobra.Command {
