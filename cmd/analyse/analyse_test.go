@@ -3,6 +3,7 @@ package analyse
 import (
 	"bytes"
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
@@ -27,21 +28,31 @@ func (f fileInfoMock) Mode() os.FileMode {
 }
 func (f fileInfoMock) Sys() interface{} { return nil }
 
-func TestInvalidArgs(t *testing.T) {
+func init() {
+	log.SetLevel(log.ErrorLevel)
+}
+
+func TestInvalidPath(t *testing.T) {
 	cmd := cobra.Command{}
 	var args []string
-	err := validate(&cmd, args)
+	o := options{}
+	o.initialise(&cmd, args)
+	var info os.FileInfo
+	err := o.validatePath(info, errors.New("something went wrong"))
 	if err == nil {
-		t.Errorf("Expected validation to fail when passing invalid arguments.")
+		t.Errorf("Expected validation to fail when passing invalid path.")
 	}
 }
 
-func TestValidArgs(t *testing.T) {
+func TestValidPath(t *testing.T) {
 	cmd := cobra.Command{}
-	args := []string{"some-path"}
-	err := validate(&cmd, args)
+	var args []string
+	o := options{}
+	o.initialise(&cmd, args)
+	var info os.FileInfo
+	err := o.validatePath(info, nil)
 	if err != nil {
-		t.Errorf("Expected validation to fail when passing invalid arguments.")
+		t.Errorf("Expected validation to pass when passing valid path.")
 	}
 }
 

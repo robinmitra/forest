@@ -1,8 +1,11 @@
 package analyse
 
 import (
+	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 type options struct {
@@ -22,7 +25,16 @@ func (o *options) initialise(cmd *cobra.Command, args []string) {
 }
 
 func (o *options) validate() {
-	return
+	if err := o.validatePath(os.Stat(o.root)); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (o *options) validatePath(info os.FileInfo, err error) error {
+	if os.IsNotExist(err) {
+		return errors.New(fmt.Sprintf("Directory \"%s\" does not exist", o.root))
+	}
+	return err
 }
 
 func (o *options) run() {
