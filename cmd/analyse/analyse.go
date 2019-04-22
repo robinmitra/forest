@@ -1,7 +1,6 @@
 package analyse
 
 import (
-	"errors"
 	"fmt"
 	"github.com/cheynewallace/tabby"
 	"github.com/gosuri/uilive"
@@ -135,27 +134,50 @@ func (s summary) print() {
 	t.Print()
 }
 
-func NewAnalyseCmd() *cobra.Command {
-	var includeDotFiles bool
+type options struct {
+	includeDotFiles bool
+	root            string
+}
 
-	cmd := &cobra.Command{
-		Use:   "analyse [path]",
-		Short: "Analyse directories and files",
-		Args:  cobra.MinimumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			log.Info("Analysing directory:", strings.Join(args, " "))
-			if err := validate(cmd, args); err != nil {
-				panic(err)
-			}
-			root := args[0]
-			includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files")
-			summary := analyse(root, includeDotFiles)
-			summary.print()
-		},
+func (o *options) initialise(cmd *cobra.Command, args []string) {
+	if len(args) != 0 {
+		o.root = args[0]
+	}
+	if includeDotFiles, _ := cmd.Flags().GetBool("include-dot-files"); includeDotFiles {
+		o.includeDotFiles = includeDotFiles
+	}
+}
+
+func (o *options) validate() {
+	if len(o.root) == 0 {
+		log.Fatal("path not provided")
+	}
+}
+
+func (o *options) run() {
+	log.Info("Analysing directory:", o.root)
+	summary := analyse(o.root, o.includeDotFiles)
+	summary.print()
+}
+
+var cmd = &cobra.Command{
+	Use:   "analyse [path]",
+	Short: "Analyse directories and files",
+	Args:  cobra.MinimumNArgs(1),
+}
+
+func NewAnalyseCmd() *cobra.Command {
+	o := options{}
+
+	cmd.Run = func(cmd *cobra.Command, args []string) {
+		o.initialise(cmd, args)
+		o.validate()
+		o.run()
 	}
 
+	// TODO: Probably better to use '--include-hidden-files' or '-h'.
 	cmd.Flags().BoolVarP(
-		&includeDotFiles,
+		&o.includeDotFiles,
 		"include-dot-files",
 		"d",
 		false,
@@ -163,27 +185,6 @@ func NewAnalyseCmd() *cobra.Command {
 	)
 
 	return cmd
-}
-
-func validate(cmd *cobra.Command, args []string) error {
-	if err := validateCommand(cmd); err != nil {
-		return err
-	}
-	if err := validateArgs(args); err != nil {
-		return err
-	}
-	return nil
-}
-
-func validateCommand(cmd *cobra.Command) error {
-	return nil
-}
-
-func validateArgs(args []string) error {
-	if len(args) == 0 {
-		return errors.New("path not provided")
-	}
-	return nil
 }
 
 func isDotFile(path string) bool {
