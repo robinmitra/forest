@@ -174,13 +174,12 @@ func NewAnalyseCmd() *cobra.Command {
 		o.run()
 	}
 
-	// TODO: Probably better to use '--include-hidden-files' or '-h'.
 	cmd.Flags().BoolVarP(
 		&o.includeDotFiles,
-		"include-dot-files",
-		"d",
+		"include-hidden-files",
+		"a",
 		false,
-		"include dot files (default is false)",
+		"include hidden files (default is false)",
 	)
 
 	return cmd
