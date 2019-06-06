@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/robinmitra/forest/cmd/analyse"
+	"github.com/robinmitra/forest/cmd/browse"
 	"github.com/robinmitra/forest/cmd/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -47,6 +48,7 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.AddCommand(analyse.NewAnalyseCmd())
 	cmd.AddCommand(version.NewVersionCmd(VERSION))
+	cmd.AddCommand(browse.NewInteractiveCmd())
 
 	return cmd
 }
