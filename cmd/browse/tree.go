@@ -118,7 +118,16 @@ func renderTree(n *node) {
 		}
 	})
 
-	if err := tview.NewApplication().SetRoot(tree, true).Run(); err != nil {
+	app := tview.NewApplication().SetRoot(tree, true)
+
+	tree.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune && event.Rune() == 'o' {
+			return tcell.NewEventKey(tcell.KeyEnter, 0, tcell.ModNone)
+		}
+		return event
+	})
+
+	if err := app.Run(); err != nil {
 		panic(err)
 	}
 }
