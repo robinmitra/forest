@@ -11,14 +11,6 @@ import (
 	"strings"
 )
 
-func AggregateChildrenSize(n *node) int64 {
-	var s int64
-	for _, c := range n.children {
-		s += c.size
-	}
-	return s
-}
-
 func buildNodesFromPath(n *node, path string, info os.FileInfo) {
 	nodeNames := strings.Split(path, "/")
 	currNodeName := nodeNames[0]
@@ -31,18 +23,17 @@ func buildNodesFromPath(n *node, path string, info os.FileInfo) {
 		} else {
 			newNode.isDir = false
 			newNode.size = info.Size()
-			n.size += info.Size()
 		}
-		n.children = append(n.children, newNode)
+		n.addChild(&newNode)
 	} else {
 		if existingNode, ok := n.getChild(currNodeName); ok {
 			buildNodesFromPath(existingNode, strings.Join(nestedNodeNames, "/"), info)
+			existingNode.recalculateSize()
 		} else {
 			newNode := node{name: currNodeName, isDir: true, parent: n}
 			buildNodesFromPath(&newNode, strings.Join(nestedNodeNames, "/"), info)
-			n.children = append(n.children, newNode)
+			n.addChild(&newNode)
 		}
-		n.size = AggregateChildrenSize(n)
 	}
 }
 
@@ -90,7 +81,7 @@ func renderTree(n *node) {
 		refNode := n.GetReference().(*node)
 		if len(refNode.children) > 0 {
 			for i, c := range refNode.children {
-				cNode := &refNode.children[i]
+				cNode := refNode.children[i]
 				childNode := tview.NewTreeNode(getNodeText(cNode)).SetReference(cNode)
 				if c.isDir {
 					childNode.SetColor(tcell.ColorGreen)
@@ -146,7 +137,7 @@ func debugTree(n *node, spacer string) {
 
 	if n.isDir && len(n.children) > 0 {
 		for i, _ := range n.children {
-			debugTree(&n.children[i], fmt.Sprintf("%s-", spacer))
+			debugTree(n.children[i], fmt.Sprintf("%s-", spacer))
 		}
 	}
 }
