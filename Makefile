@@ -43,7 +43,7 @@ endif
 build: $(BUILD_DIR)/$(BINARY)
 
 # Build the docker image.
-docker-build:
+docker_build:
 	docker build -t $(DOCKER_IMAGE) .
 
 $(BUILD_DIR)/$(BINARY32): $(SOURCES)
@@ -67,7 +67,7 @@ $(BIN_DIR)/forest: $(BUILD_DIR)/$(BINARY) | $(BIN_DIR)
 # Test #
 ########
 
-docker-test:
+docker_test:
 	docker run --rm -v $$(pwd):/go/src/app robinmitra/forest go test -v ./...
 
 ###########
@@ -75,7 +75,7 @@ docker-test:
 ###########
 
 ask_version:
-	$(eval VERSION=$(shell read -p "* What's the new version? " version; echo $$version))
+	$(eval VERSION=$(shell read -p "* What's the new version (current: $$(cat VERSION))? " version; echo $$version))
 	$(eval TYPE=$(shell read -p "* What's the release type [major/minor/patch]? " t; echo $$t))
 
 check_version_provided:
@@ -112,7 +112,9 @@ tag:
 	git tag v$(VERSION)
 
 # Bump the version.
-bump: ask_version check_prerequisites update_files commit tag
+bump: ask_version check_prerequisites update_files commit
+
+bump_and_tag: ask_version check_prerequisites update_files commit
 
 push:
 	@echo "* Do you want to push the changes? [y/N]: "
