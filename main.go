@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var VERSION = "0.2.2"
+var VERSION = "0.3.0"
 
 func main() {
 	cmd.Execute(VERSION)
