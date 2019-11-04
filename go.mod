@@ -5,7 +5,7 @@ go 1.12
 require (
 	github.com/cheynewallace/tabby v1.1.0
 	github.com/gdamore/tcell v1.1.2
-	github.com/gosuri/uilive v0.0.2
+	github.com/gosuri/uilive v0.0.3
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/rivo/tview v0.0.0-20190609162513-b62197ade412
 	github.com/sirupsen/logrus v1.4.1
