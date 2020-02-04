@@ -6,6 +6,23 @@
 
 Forest is a command-line tool for analysing and browsing files and directories on the filesystem.
 
+## Installation
+
+The easiest way to install `forest` is to run:
+
+```bash
+brew install robinmitra/forest/forest
+```
+
+Or you can manually tap this repository and install the formula:
+
+```bash
+brew tap robinmitra/forest
+brew install forest
+```
+
+Or you can build from source as explained below.
+
 ## Features
 
 ### Analyse files
