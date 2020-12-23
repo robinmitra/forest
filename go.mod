@@ -3,7 +3,7 @@ module github.com/robinmitra/forest
 go 1.12
 
 require (
-	github.com/cheynewallace/tabby v1.1.0
+	github.com/cheynewallace/tabby v1.1.1
 	github.com/gdamore/tcell v1.1.2
 	github.com/gosuri/uilive v0.0.2
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
